@@ -1,14 +1,26 @@
 export default async function handler(req, res) {
-    const cloudName = "dzldts0zx";
+    try {
+        const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+        const apiKey = process.env.CLOUDINARY_API_KEY;
+        const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-    const url = `https://res.cloudinary.com/${cloudName}/image/list/hero-images.json`;
+        const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
 
-    const response = await fetch(url);
-    const data = await response.json();
+        const url =
+            `https://api.cloudinary.com/v1_1/${cloudName}/resources/image?prefix=hero-images/`;
 
-    const images = data.resources.map((img) =>
-        `https://res.cloudinary.com/${cloudName}/image/upload/${img.public_id}.${img.format}`
-    );
+        const response = await fetch(url, {
+            headers: {
+                Authorization: `Basic ${auth}`,
+            },
+        });
 
-    res.status(200).json({ images });
+        const data = await response.json();
+
+        const images = (data.resources || []).map(img => img.secure_url);
+
+        res.status(200).json({ images });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 }
