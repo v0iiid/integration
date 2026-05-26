@@ -26,9 +26,10 @@ export default async function handler(req, res) {
             return res.status(400).json(data);
         }
 
-        const images = (data.resources || []).map(
-            (img) => img.secure_url
-        );
+        const images = (data.resources || []).map((img) => ({
+            url: img.secure_url,
+            public_id: img.public_id,
+        }));
 
         res.json({ images });
     } catch (err) {
